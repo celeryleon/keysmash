@@ -55,10 +55,10 @@ export default function PassageCard({ passage, attempt, isLoggedIn }: PassageCar
         )}
       </div>
 
-      {/* Passage preview */}
-      <p className="text-sm text-[var(--muted)] leading-relaxed line-clamp-2 font-mono">
-        {passage.content}
-      </p>
+      {/* Source info */}
+      {passage.source && (
+        <p className="text-xs text-[var(--muted)]">{passage.source}</p>
+      )}
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-1">
@@ -83,7 +83,7 @@ export default function PassageCard({ passage, attempt, isLoggedIn }: PassageCar
         ) : isLoggedIn ? (
           <Link
             href={`/type/${passage.id}`}
-            className="px-4 py-1.5 bg-[var(--accent)] text-black text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)]"
+            className="px-4 py-1.5 bg-[var(--accent)] text-white text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)]"
           >
             type this
           </Link>

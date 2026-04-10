@@ -141,7 +141,7 @@ export default function ShareCard({
         <button
           onClick={shareText_}
           disabled={copying}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] text-black rounded-full text-sm font-semibold hover:bg-[var(--accent-dark)] disabled:opacity-50"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] text-white rounded-full text-sm font-semibold hover:bg-[var(--accent-dark)] disabled:opacity-50"
         >
           {shared ? "copied!" : copying ? "..." : canShare ? "share" : "copy text"}
         </button>

@@ -53,7 +53,7 @@ function PreviewContent() {
       <div className="flex justify-center gap-4 text-sm">
         <Link
           href="/auth"
-          className="px-5 py-2.5 bg-[var(--accent)] text-black font-semibold rounded-full text-sm hover:bg-[var(--accent-dark)]"
+          className="px-5 py-2.5 bg-[var(--accent)] text-white font-semibold rounded-full text-sm hover:bg-[var(--accent-dark)]"
         >
           sign in to save →
         </Link>

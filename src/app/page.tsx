@@ -39,9 +39,7 @@ export default async function HomePage() {
     day: "numeric",
   });
 
-  const aiPassage = passages.find((p) => p.type === "ai");
   const classicPassage = passages.find((p) => p.type === "classic");
-  const aiAttempt = attempts.find((a) => a.passage_id === aiPassage?.id) ?? null;
   const classicAttempt =
     attempts.find((a) => a.passage_id === classicPassage?.id) ?? null;
 
@@ -49,20 +47,13 @@ export default async function HomePage() {
     <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-6 py-12 gap-12">
       <div className="space-y-1">
         <p className="text-[var(--muted)] text-sm">{today}</p>
-        <h1 className="text-3xl font-bold tracking-tight">today's passages</h1>
+        <h1 className="text-3xl font-bold tracking-tight">today's passage</h1>
         <p className="text-[var(--muted)] text-sm">
-          two passages · one shot each · how fast are you?
+          one passage · one shot · how fast are you?
         </p>
       </div>
 
       <div className="space-y-4">
-        {aiPassage && (
-          <PassageCard
-            passage={aiPassage}
-            attempt={aiAttempt}
-            isLoggedIn={!!user}
-          />
-        )}
         {classicPassage && (
           <PassageCard
             passage={classicPassage}
@@ -72,7 +63,7 @@ export default async function HomePage() {
         )}
         {passages.length === 0 && (
           <div className="text-center py-12 text-[var(--muted)]">
-            loading today's passages...
+            loading today's passage...
           </div>
         )}
       </div>

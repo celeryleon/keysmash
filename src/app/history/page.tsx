@@ -70,7 +70,7 @@ export default async function HistoryPage() {
           <p className="text-[var(--muted)]">no attempts yet</p>
           <Link
             href="/"
-            className="inline-block px-5 py-2.5 bg-[var(--accent)] text-black font-semibold rounded-full text-sm hover:bg-[var(--accent-dark)]"
+            className="inline-block px-5 py-2.5 bg-[var(--accent)] text-white font-semibold rounded-full text-sm hover:bg-[var(--accent-dark)]"
           >
             type today's passages
           </Link>
