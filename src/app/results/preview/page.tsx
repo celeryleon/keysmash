@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
-import ShareCard from "@/components/ShareCard";
+import ShareButtons from "@/components/ShareButtons";
 
 function PreviewContent() {
   const params = useSearchParams();
@@ -39,11 +39,9 @@ function PreviewContent() {
         <h2 className="text-sm font-semibold text-center text-[var(--muted)] uppercase tracking-widest">
           share your results
         </h2>
-        <ShareCard
+        <ShareButtons
           wpm={wpm}
           accuracy={accuracy}
-          timeElapsed={time}
-          passageType="classic"
           passageTitle={null}
           passageAuthor={null}
           date={new Date().toISOString().split("T")[0]}

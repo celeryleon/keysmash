@@ -33,12 +33,6 @@ export default async function HomePage() {
     }
   }
 
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
   const classicPassage = passages.find((p) => p.type === "classic");
   const classicAttempt =
     attempts.find((a) => a.passage_id === classicPassage?.id) ?? null;
@@ -46,8 +40,7 @@ export default async function HomePage() {
   return (
     <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-6 py-12 gap-12">
       <div className="space-y-1">
-        <p className="text-[var(--muted)] text-sm">{today}</p>
-        <h1 className="text-3xl font-bold tracking-tight">today's passage</h1>
+        <h1 className="text-3xl font-bold tracking-tight">keysmash</h1>
         <p className="text-[var(--muted)] text-sm">
           one passage · one shot · how fast are you?
         </p>

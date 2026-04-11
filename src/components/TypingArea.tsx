@@ -178,7 +178,7 @@ export default function TypingArea({ passage, onComplete }: TypingAreaProps) {
                               ? "text-[var(--muted)]"
                               : typed === char
                               ? "text-[var(--foreground)]"
-                              : "text-red-400 bg-red-900/30 rounded-sm"
+                              : "text-[var(--error)] bg-[var(--error)]/10 rounded-sm"
                           }
                         >
                           {char}
@@ -224,7 +224,7 @@ export default function TypingArea({ passage, onComplete }: TypingAreaProps) {
           bg-[var(--surface)] placeholder-[var(--muted)]
           transition-colors duration-100
           ${isInputError
-            ? "border-red-500 bg-red-950/30 text-red-300"
+            ? "border-[var(--error)]/50 text-[var(--error)]"
             : "border-[var(--border)] text-[var(--foreground)] focus:border-[var(--accent)]/60"
           }
           ${completed ? "opacity-50 cursor-default" : ""}

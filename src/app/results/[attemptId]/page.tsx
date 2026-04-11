@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import ShareCard from "@/components/ShareCard";
+import ShareButtons from "@/components/ShareButtons";
 
 interface Props {
   params: Promise<{ attemptId: string }>;
@@ -64,16 +64,14 @@ export default async function ResultsPage({ params }: Props) {
         </p>
       </div>
 
-      {/* Share card */}
+      {/* Share */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-center text-[var(--muted)] uppercase tracking-widest">
           share your results
         </h2>
-        <ShareCard
+        <ShareButtons
           wpm={attempt.wpm}
           accuracy={Number(attempt.accuracy)}
-          timeElapsed={attempt.time_elapsed}
-          passageType={passage.type}
           passageTitle={passage.title}
           passageAuthor={passage.author}
           date={passage.date}
