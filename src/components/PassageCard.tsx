@@ -26,23 +26,27 @@ export default function PassageCard({ passage, attempt }: PassageCardProps) {
         }
       `}
     >
+      {/* Top row: type label left, date right */}
       <div className="flex items-center justify-between gap-4">
-        <div className="space-y-0.5 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[var(--accent)] text-xs font-mono">{emoji}</span>
-            <span className="text-xs text-[var(--muted)] uppercase tracking-widest">{label}</span>
-            <span className="text-xs text-[var(--border-2)]">·</span>
-            <span className="text-xs text-[var(--muted)]">
-              {new Date(passage.date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-            </span>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[var(--accent)] text-xs font-mono">{emoji}</span>
+          <span className="text-xs text-[var(--muted)] uppercase tracking-widest">{label}</span>
+        </div>
+        <span className="text-xs text-[var(--muted)]">
+          {new Date(passage.date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+        </span>
+      </div>
+
+      <div className="border-t border-[var(--border)] mt-2" />
+
+      {/* Bottom row: title/author left, action right */}
+      <div className="flex items-end justify-between gap-4 mt-2">
+        <div className="min-w-0">
           {passage.title && (
-            <p className="font-semibold text-sm">
-              {passage.title}
-              {passage.author && (
-                <span className="text-[var(--muted)] font-normal"> — {passage.author}</span>
-              )}
-            </p>
+            <p className="font-semibold text-sm">{passage.title}</p>
+          )}
+          {passage.author && (
+            <p className="text-xs text-[var(--muted)]">{passage.author}</p>
           )}
           {completed && (
             <div className="flex items-center gap-3 text-xs text-[var(--muted)] pt-0.5">

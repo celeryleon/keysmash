@@ -42,11 +42,11 @@ export default async function ResultsPage({ params }: Props) {
           <p className="text-[var(--muted)] text-xs mt-1">WPM</p>
         </div>
         <div className="bg-[var(--surface)] rounded-2xl p-5 text-center border border-[var(--border)]">
-          <p className="text-white font-bold text-4xl tabular-nums">{attempt.accuracy}%</p>
+          <p className="text-[var(--accent)] font-bold text-4xl tabular-nums">{attempt.accuracy}%</p>
           <p className="text-[var(--muted)] text-xs mt-1">accuracy</p>
         </div>
         <div className="bg-[var(--surface)] rounded-2xl p-5 text-center border border-[var(--border)]">
-          <p className="text-white font-bold text-4xl tabular-nums">{attempt.time_elapsed}s</p>
+          <p className="text-[var(--accent)] font-bold text-4xl tabular-nums">{attempt.time_elapsed}s</p>
           <p className="text-[var(--muted)] text-xs mt-1">time</p>
         </div>
       </div>
@@ -67,7 +67,7 @@ export default async function ResultsPage({ params }: Props) {
       {/* Share */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-center text-[var(--muted)] uppercase tracking-widest">
-          share your results
+          brag to your friends
         </h2>
         <ShareButtons
           wpm={attempt.wpm}

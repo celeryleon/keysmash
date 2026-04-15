@@ -54,11 +54,11 @@ export default async function HistoryPage() {
             <p className="text-[var(--muted)] text-xs mt-1">best WPM</p>
           </div>
           <div className="bg-[var(--surface)] rounded-2xl p-5 border border-[var(--border)]">
-            <p className="text-white font-bold text-3xl tabular-nums">{avgWpm}</p>
+            <p className="text-[var(--accent)] font-bold text-3xl tabular-nums">{avgWpm}</p>
             <p className="text-[var(--muted)] text-xs mt-1">avg WPM</p>
           </div>
           <div className="bg-[var(--surface)] rounded-2xl p-5 border border-[var(--border)]">
-            <p className="text-white font-bold text-3xl tabular-nums">{totalAttempts}</p>
+            <p className="text-[var(--accent)] font-bold text-3xl tabular-nums">{totalAttempts}</p>
             <p className="text-[var(--muted)] text-xs mt-1">passages typed</p>
           </div>
         </div>
@@ -98,12 +98,10 @@ export default async function HistoryPage() {
                     </span>
                     <span className="text-xs text-[var(--muted)]">{date}</span>
                   </div>
-                  <p className="text-sm font-medium truncate mt-0.5">
-                    {p.title ?? "Untitled"}
-                    {p.author && (
-                      <span className="text-[var(--muted)] font-normal"> — {p.author}</span>
-                    )}
-                  </p>
+                  <p className="text-sm font-medium truncate mt-0.5">{p.title ?? "Untitled"}</p>
+                  {p.author && (
+                    <p className="text-xs text-[var(--muted)] truncate">{p.author}</p>
+                  )}
                 </div>
 
                 <div className="text-right shrink-0">

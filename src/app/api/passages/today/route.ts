@@ -25,6 +25,12 @@ export async function GET() {
   if (!existing || existing.length === 0) {
     const classic = pickPassageForDate(today);
     await supabase.from("passages").insert({ date: today, type: "classic" as const, ...classic });
+  } else if (existing[0] && !existing[0].title) {
+    const classic = pickPassageForDate(today);
+    await supabase
+      .from("passages")
+      .update({ title: classic.title, author: classic.author, source: classic.source })
+      .eq("id", existing[0].id);
   }
 
   const { data: passages, error } = await supabase
