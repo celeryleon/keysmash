@@ -72,6 +72,7 @@ export default async function ResultsPage({ params }: Props) {
         <ShareButtons
           wpm={attempt.wpm}
           accuracy={Number(attempt.accuracy)}
+          timeElapsed={attempt.time_elapsed}
           passageTitle={passage.title}
           passageAuthor={passage.author}
           date={passage.date}

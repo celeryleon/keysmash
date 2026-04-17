@@ -4,30 +4,91 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
+
+function isEmail(value: string) {
+  return value.includes("@");
+}
+
 export default function AuthPage() {
   const router = useRouter();
   const supabase = createClient();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
+
+  const [identifier, setIdentifier] = useState(""); // email or username (sign in)
+  const [email, setEmail] = useState("");            // email only (sign up)
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  const [usernameError, setUsernameError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  function switchMode(next: "signin" | "signup") {
+    setMode(next);
+    setError(null);
+    setUsernameError(null);
+  }
+
+  function validateUsername(value: string) {
+    if (!value) return;
+    if (!USERNAME_RE.test(value)) {
+      setUsernameError("3–20 chars: letters, numbers, underscores only");
+    } else {
+      setUsernameError(null);
+    }
+  }
+
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     if (mode === "signup") {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        setError(error.message);
+      if (!USERNAME_RE.test(username)) {
+        setUsernameError("3–20 chars: letters, numbers, underscores only");
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, username }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error);
       } else {
         setCheckEmail(true);
       }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      // Resolve username → email if needed
+      let resolvedEmail = identifier;
+
+      if (!isEmail(identifier)) {
+        const res = await fetch("/api/auth/resolve-username", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: identifier }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error);
+          setLoading(false);
+          return;
+        }
+        resolvedEmail = data.email;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: resolvedEmail,
+        password,
+      });
+
       if (error) {
         setError(error.message);
       } else {
@@ -68,20 +129,66 @@ export default function AuthPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm text-[var(--muted)]" htmlFor="email">
-              email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm outline-none focus:border-[var(--accent)] placeholder-[var(--muted)]"
-              placeholder="you@example.com"
-            />
-          </div>
+          {mode === "signin" ? (
+            <div className="space-y-2">
+              <label className="text-sm text-[var(--muted)]" htmlFor="identifier">
+                email or username
+              </label>
+              <input
+                id="identifier"
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                required
+                autoComplete="username"
+                className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm outline-none focus:border-[var(--accent)] placeholder-[var(--muted)]"
+                placeholder="you@example.com or yourname"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <label className="text-sm text-[var(--muted)]" htmlFor="email">
+                  email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm outline-none focus:border-[var(--accent)] placeholder-[var(--muted)]"
+                  placeholder="you@example.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm text-[var(--muted)]" htmlFor="username">
+                  username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value.toLowerCase());
+                    setUsernameError(null);
+                  }}
+                  onBlur={() => validateUsername(username)}
+                  required
+                  autoComplete="username"
+                  className={`w-full bg-[var(--surface)] border rounded-lg px-4 py-3 text-sm outline-none focus:border-[var(--accent)] placeholder-[var(--muted)] ${
+                    usernameError ? "border-[var(--error)]" : "border-[var(--border)]"
+                  }`}
+                  placeholder="yourname"
+                />
+                {usernameError && (
+                  <p className="text-[var(--error)] text-xs">{usernameError}</p>
+                )}
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm text-[var(--muted)]" htmlFor="password">
@@ -94,13 +201,14 @@ export default function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
               className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm outline-none focus:border-[var(--accent)] placeholder-[var(--muted)]"
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm">{error}</p>
+            <p className="text-[var(--error)] text-sm">{error}</p>
           )}
 
           <button
@@ -115,7 +223,7 @@ export default function AuthPage() {
         <p className="text-center text-sm text-[var(--muted)]">
           {mode === "signin" ? "don't have an account? " : "already have an account? "}
           <button
-            onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); }}
+            onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
             className="text-[var(--foreground)] underline underline-offset-2"
           >
             {mode === "signin" ? "sign up" : "sign in"}

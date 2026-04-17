@@ -42,6 +42,7 @@ function PreviewContent() {
         <ShareButtons
           wpm={wpm}
           accuracy={accuracy}
+          timeElapsed={time}
           passageTitle={null}
           passageAuthor={null}
           date={new Date().toISOString().split("T")[0]}
