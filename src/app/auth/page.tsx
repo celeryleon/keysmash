@@ -52,16 +52,30 @@ export default function AuthPage() {
         return;
       }
 
-      const res = await fetch("/api/auth/signup", {
+      const checkRes = await fetch("/api/auth/check-username", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, username }),
+        body: JSON.stringify({ username }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      if (!checkRes.ok) {
+        const data = await checkRes.json();
         setError(data.error);
+        setLoading(false);
+        return;
+      }
+
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
       } else {
         setCheckEmail(true);
       }
