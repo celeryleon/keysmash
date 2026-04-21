@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
@@ -232,6 +233,17 @@ export default function AuthPage() {
           >
             {loading ? "..." : mode === "signin" ? "sign in" : "create account"}
           </button>
+
+          {mode === "signin" && (
+            <p className="text-center text-sm text-[var(--muted)]">
+              <Link
+                href="/auth/forgot"
+                className="text-[var(--foreground)] underline underline-offset-2"
+              >
+                forgot password?
+              </Link>
+            </p>
+          )}
         </form>
 
         <p className="text-center text-sm text-[var(--muted)]">
