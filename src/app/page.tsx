@@ -1,16 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import PassageCard from "@/components/PassageCard";
-import type { Passage, Attempt } from "@/lib/supabase/types";
-
-async function getTodayPassages(): Promise<Passage[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/api/passages/today`,
-    { cache: "no-store" }
-  );
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.passages ?? [];
-}
+import type { Attempt } from "@/lib/supabase/types";
+import { getTodayPassages } from "@/lib/passages-today";
 
 export default async function HomePage() {
   const supabase = await createClient();
