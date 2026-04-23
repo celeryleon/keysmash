@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ShareButtons from "@/components/ShareButtons";
-import ChallengeButton from "@/components/ChallengeButton";
 
 interface Props {
   params: Promise<{ attemptId: string }>;
@@ -65,15 +64,7 @@ export default async function ResultsPage({ params }: Props) {
         </p>
       </div>
 
-      {/* Challenge */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-center text-[var(--muted)] uppercase tracking-widest">
-          challenge someone
-        </h2>
-        <ChallengeButton passageId={passage.id} />
-      </div>
-
-      {/* Share */}
+{/* Share */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-center text-[var(--muted)] uppercase tracking-widest">
           brag to your friends

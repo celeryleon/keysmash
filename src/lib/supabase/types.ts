@@ -81,6 +81,33 @@ export type Database = {
           }
         ];
       };
+      duels: {
+        Row: {
+          id: string;
+          passage_index: number;
+          challenger_wpm: number;
+          challengee_wpm: number | null;
+          created_at: string;
+          expires_at: string;
+        };
+        Insert: {
+          id?: string;
+          passage_index: number;
+          challenger_wpm: number;
+          challengee_wpm?: number | null;
+          created_at?: string;
+          expires_at?: string;
+        };
+        Update: {
+          id?: string;
+          passage_index?: number;
+          challenger_wpm?: number;
+          challengee_wpm?: number | null;
+          created_at?: string;
+          expires_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -126,3 +153,4 @@ export type Database = {
 export type Passage = Database["public"]["Tables"]["passages"]["Row"];
 export type Attempt = Database["public"]["Tables"]["attempts"]["Row"];
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type Duel = Database["public"]["Tables"]["duels"]["Row"];

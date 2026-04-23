@@ -50,6 +50,30 @@ export default async function HomePage() {
             loading today's passage...
           </div>
         )}
+
+        {/* Duel card */}
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4 hover:border-[var(--accent)]/40 transition-colors">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--accent)] text-xs font-mono">⚔</span>
+              <span className="text-xs text-[var(--muted)] uppercase tracking-widest">duel</span>
+            </div>
+            <span className="text-xs text-[var(--muted)]">no account needed</span>
+          </div>
+          <div className="border-t border-[var(--border)] mt-2" />
+          <div className="flex items-end justify-between gap-4 mt-2">
+            <div className="min-w-0">
+              <p className="font-semibold text-sm">challenge anyone</p>
+              <p className="text-xs text-[var(--muted)]">random passage · shareable link · see who's faster</p>
+            </div>
+            <a
+              href="/duel"
+              className="shrink-0 px-4 py-1.5 bg-[var(--accent)] text-white text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)] transition-colors"
+            >
+              duel!
+            </a>
+          </div>
+        </div>
       </div>
 
       {!user && (

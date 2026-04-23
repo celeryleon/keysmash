@@ -40,7 +40,7 @@ body {
 }
 
 .cursor-blink {
-  animation: blink 1s step-start infinite;
+  animation: blink 1s ease-in-out infinite;
 }
 
 /* Smooth transitions */
