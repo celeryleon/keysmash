@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { validateScore } from "@/lib/score-validation";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -14,6 +15,27 @@ export async function POST(request: NextRequest) {
 
   if (!passage_id || wpm == null || accuracy == null || time_elapsed == null) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  // Fetch passage to validate score against actual content length.
+  const { data: passage, error: passageError } = await supabase
+    .from("passages")
+    .select("content")
+    .eq("id", passage_id)
+    .single();
+
+  if (passageError || !passage) {
+    return NextResponse.json({ error: "Passage not found" }, { status: 404 });
+  }
+
+  const validation = validateScore({
+    wpm,
+    timeElapsed: time_elapsed,
+    charsTyped: passage.content.length,
+    accuracy,
+  });
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.reason }, { status: 400 });
   }
 
   const { data, error } = await supabase
