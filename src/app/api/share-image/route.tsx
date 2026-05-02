@@ -22,6 +22,8 @@ export async function GET(req: NextRequest) {
   const title = searchParams.get("title") ?? null;
   const author = searchParams.get("author") ?? null;
   const date = searchParams.get("date") ?? new Date().toISOString().split("T")[0];
+  const streakParam = searchParams.get("streak");
+  const streak = streakParam ? parseInt(streakParam, 10) : null;
 
   const formattedDate = new Date(date + "T00:00:00").toLocaleDateString("en-US", {
     month: "long",
@@ -75,6 +77,20 @@ export async function GET(req: NextRequest) {
             keysmash
           </span>
           <span style={{ color: secondary, fontSize: 40, marginTop: 8 }}>{formattedDate}</span>
+          {streak && streak > 0 && (
+            <span
+              style={{
+                color: accent,
+                fontWeight: 700,
+                fontSize: 32,
+                marginTop: 12,
+                textTransform: "uppercase",
+                letterSpacing: "6px",
+              }}
+            >
+              day {streak}
+            </span>
+          )}
         </div>
 
         {/* Score block */}
