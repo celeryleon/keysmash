@@ -9,9 +9,10 @@ interface ShareButtonsProps {
   passageTitle: string | null;
   passageAuthor: string | null;
   date: string;
+  streak?: number;
 }
 
-export default function ShareButtons({ wpm, accuracy, timeElapsed, passageTitle, passageAuthor, date }: ShareButtonsProps) {
+export default function ShareButtons({ wpm, accuracy, timeElapsed, passageTitle, passageAuthor, date, streak }: ShareButtonsProps) {
   const [instaState, setInstaState] = useState<"idle" | "loading" | "done">("idle");
 
   function buildImageUrl() {
@@ -22,6 +23,7 @@ export default function ShareButtons({ wpm, accuracy, timeElapsed, passageTitle,
       date,
       ...(passageTitle ? { title: passageTitle } : {}),
       ...(passageAuthor ? { author: passageAuthor } : {}),
+      ...(streak ? { streak: String(streak) } : {}),
     });
     return `/api/share-image?${params}`;
   }

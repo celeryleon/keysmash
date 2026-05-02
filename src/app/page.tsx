@@ -12,6 +12,7 @@ export default async function HomePage() {
   const passages = await getTodayPassages();
 
   let attempts: Attempt[] = [];
+  let currentStreak = 0;
   if (user) {
     const passageIds = passages.map((p) => p.id);
     if (passageIds.length > 0) {
@@ -22,6 +23,13 @@ export default async function HomePage() {
         .in("passage_id", passageIds);
       attempts = data ?? [];
     }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("current_streak")
+      .eq("id", user.id)
+      .single();
+    currentStreak = profile?.current_streak ?? 0;
   }
 
   const classicPassage = passages.find((p) => p.type === "classic");
@@ -35,6 +43,11 @@ export default async function HomePage() {
         <p className="text-[var(--muted)] text-sm">
           one passage · one shot · how fast are you?
         </p>
+        {currentStreak > 0 && (
+          <p className="text-[var(--accent)] text-xs font-mono pt-2">
+            {currentStreak}-day streak
+          </p>
+        )}
       </div>
 
       <div className="space-y-4">

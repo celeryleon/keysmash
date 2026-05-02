@@ -18,7 +18,7 @@ export default async function HistoryPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username")
+    .select("username, current_streak, longest_streak")
     .eq("id", user.id)
     .single();
 
@@ -48,7 +48,7 @@ export default async function HistoryPage() {
 
       {/* Stats strip */}
       {totalAttempts > 0 && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-[var(--surface)] rounded-2xl p-5 border border-[var(--border)]">
             <p className="text-[var(--accent)] font-black text-3xl tabular-nums">{bestWpm}</p>
             <p className="text-[var(--muted)] text-xs mt-1">best WPM</p>
@@ -60,6 +60,19 @@ export default async function HistoryPage() {
           <div className="bg-[var(--surface)] rounded-2xl p-5 border border-[var(--border)]">
             <p className="text-[var(--accent)] font-bold text-3xl tabular-nums">{totalAttempts}</p>
             <p className="text-[var(--muted)] text-xs mt-1">passages typed</p>
+          </div>
+          <div className="bg-[var(--surface)] rounded-2xl p-5 border border-[var(--border)]">
+            <p className="text-[var(--accent)] font-bold text-3xl tabular-nums">
+              {profile?.current_streak ?? 0}
+            </p>
+            <p className="text-[var(--muted)] text-xs mt-1">
+              day streak
+              {profile?.longest_streak ? (
+                <span className="block text-[10px] opacity-70">
+                  longest: {profile.longest_streak}
+                </span>
+              ) : null}
+            </p>
           </div>
         </div>
       )}

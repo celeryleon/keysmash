@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ShareButtons from "@/components/ShareButtons";
+import { getTodayDate } from "@/lib/date";
 
 interface Props {
   params: Promise<{ attemptId: string }>;
@@ -20,6 +21,23 @@ export default async function ResultsPage({ params }: Props) {
   if (error || !attempt) notFound();
 
   const passage = (attempt as { passages: { id: string; date: string; type: "ai" | "classic"; title: string | null; author: string | null } }).passages;
+
+  // Only attach the current streak to a share for *today's* attempt — older
+  // attempts shouldn't display the user's current streak number, since the
+  // streak at the time of that attempt may have been different.
+  const isToday = passage.date === getTodayDate();
+  let streak: number | undefined;
+  if (isToday) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("current_streak")
+        .eq("id", user.id)
+        .single();
+      if (profile && profile.current_streak > 0) streak = profile.current_streak;
+    }
+  }
 
   return (
     <div className="flex-1 flex flex-col max-w-xl mx-auto w-full px-6 py-12 gap-10">
@@ -76,6 +94,7 @@ export default async function ResultsPage({ params }: Props) {
           passageTitle={passage.title}
           passageAuthor={passage.author}
           date={passage.date}
+          streak={streak}
         />
       </div>
 

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { validateScore } from "@/lib/score-validation";
+import { computeNextStreak } from "@/lib/streak";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -17,10 +18,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  // Fetch passage to validate score against actual content length.
+  // Fetch passage to validate score against actual content length and to
+  // key the streak update off the passage's date.
   const { data: passage, error: passageError } = await supabase
     .from("passages")
-    .select("content")
+    .select("content, date")
     .eq("id", passage_id)
     .single();
 
@@ -56,6 +58,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Already attempted today" }, { status: 409 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Update streak off the passage's date. Failure here doesn't fail the
+  // request — the attempt is saved, and the streak self-heals on the next
+  // attempt by reading the same lastAttemptDate. See PRD §3.4.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("current_streak, longest_streak, last_attempt_date")
+    .eq("id", user.id)
+    .single();
+
+  if (profile) {
+    const next = computeNextStreak(passage.date, {
+      currentStreak: profile.current_streak,
+      longestStreak: profile.longest_streak,
+      lastAttemptDate: profile.last_attempt_date,
+    });
+
+    await supabase
+      .from("profiles")
+      .update({
+        current_streak: next.currentStreak,
+        longest_streak: next.longestStreak,
+        last_attempt_date: next.lastAttemptDate,
+      })
+      .eq("id", user.id);
   }
 
   return NextResponse.json({ attempt: data });
