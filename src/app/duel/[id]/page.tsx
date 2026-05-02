@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ALL_PASSAGES } from "@/lib/passages";
 import Link from "next/link";
 import DuelChallengeClient from "./DuelChallengeClient";
+import ClaimChallengeeButton from "./ClaimChallengeeButton";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -22,6 +24,16 @@ export default async function DuelPage({ params }: Props) {
 
   const passage = ALL_PASSAGES[duel.passage_index];
   if (!passage) notFound();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  // The optional claim CTA only renders when the challengee is anonymous
+  // (challengee_user_id IS NULL) and the viewer isn't the challenger
+  // themselves. The client further gates on a sessionStorage marker so a
+  // random link visitor never sees it.
+  const canShowClaim =
+    duel.challengee_wpm != null &&
+    duel.challengee_user_id == null &&
+    duel.challenger_user_id !== user?.id;
 
   // Both players done — show comparison
   if (duel.challengee_wpm !== null) {
@@ -76,6 +88,12 @@ export default async function DuelPage({ params }: Props) {
             <p className="text-xs text-[var(--muted)]">{passage.author}</p>
           )}
         </div>
+
+        {canShowClaim && (
+          <Suspense>
+            <ClaimChallengeeButton duelId={id} isSignedIn={!!user} />
+          </Suspense>
+        )}
 
         <Link
           href="/duel"

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -11,8 +11,18 @@ function isEmail(value: string) {
   return value.includes("@");
 }
 
-export default function AuthPage() {
+// Restrict ?next= to same-origin paths so the redirect can't be turned into
+// an open-redirect gadget. Must start with "/" but not "//" (protocol-relative).
+function safeNext(value: string | null): string {
+  if (!value) return "/";
+  if (!value.startsWith("/") || value.startsWith("//")) return "/";
+  return value;
+}
+
+function AuthForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const next = safeNext(params.get("next"));
   const supabase = createClient();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
 
@@ -66,12 +76,17 @@ export default function AuthPage() {
         return;
       }
 
+      // The confirmation email link bounces through /auth/callback so the
+      // session is established server-side before landing on `next`.
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      if (next !== "/") callbackUrl.searchParams.set("next", next);
+
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { username },
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: callbackUrl.toString(),
         },
       });
 
@@ -107,7 +122,7 @@ export default function AuthPage() {
       if (error) {
         setError(error.message);
       } else {
-        router.push("/");
+        router.push(next);
         router.refresh();
       }
     }
@@ -257,5 +272,13 @@ export default function AuthPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense>
+      <AuthForm />
+    </Suspense>
   );
 }

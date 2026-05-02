@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import TypingArea from "@/components/TypingArea";
 import type { PassageEntry } from "@/lib/passages";
+import { writePendingClaim } from "@/lib/duel-handoff";
 
 interface Props {
   duelId: string;
@@ -22,11 +23,23 @@ export default function DuelChallengeClient({
   const handleComplete = useCallback(
     async (wpm: number, _accuracy: number, timeElapsed: number) => {
       setSaving(true);
-      await fetch(`/api/duels/${duelId}`, {
+      const res = await fetch(`/api/duels/${duelId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wpm, time_elapsed: timeElapsed }),
       });
+      // Mark this duel as "I just typed it" so the result page can offer the
+      // optional claim CTA without trusting any random viewer (PRD §3.2).
+      // Only set the marker when the PATCH succeeded *and* the typer is
+      // anonymous — a signed-in challengee already had their user_id attached
+      // by the server, so there's nothing to claim.
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const challengeeUserId = data?.duel?.challengee_user_id ?? null;
+        if (challengeeUserId === null) {
+          writePendingClaim({ duelId });
+        }
+      }
       router.refresh();
     },
     [duelId, router]
