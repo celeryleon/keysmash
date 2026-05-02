@@ -52,14 +52,18 @@ export default function DuelPageClient({ excludedIndex }: DuelPageClientProps) {
   }, [duelId, phase]);
 
   const handleComplete = useCallback(
-    async (wpm: number) => {
+    async (wpm: number, _accuracy: number, timeElapsed: number) => {
       setMyWpm(wpm);
       setCreating(true);
 
       const res = await fetch("/api/duels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ passage_index: passageIndex, wpm }),
+        body: JSON.stringify({
+          passage_index: passageIndex,
+          wpm,
+          time_elapsed: timeElapsed,
+        }),
       });
 
       const data = await res.json();
@@ -107,7 +111,7 @@ export default function DuelPageClient({ excludedIndex }: DuelPageClientProps) {
 
         <TypingArea
           passage={passage.content}
-          onComplete={(wpm) => handleComplete(wpm)}
+          onComplete={handleComplete}
         />
 
         {creating && (

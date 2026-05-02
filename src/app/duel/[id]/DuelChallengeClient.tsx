@@ -20,12 +20,12 @@ export default function DuelChallengeClient({
   const [saving, setSaving] = useState(false);
 
   const handleComplete = useCallback(
-    async (wpm: number) => {
+    async (wpm: number, _accuracy: number, timeElapsed: number) => {
       setSaving(true);
       await fetch(`/api/duels/${duelId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wpm }),
+        body: JSON.stringify({ wpm, time_elapsed: timeElapsed }),
       });
       router.refresh();
     },
@@ -59,7 +59,7 @@ export default function DuelChallengeClient({
 
       <TypingArea
         passage={passage.content}
-        onComplete={(wpm) => handleComplete(wpm)}
+        onComplete={handleComplete}
       />
 
       {saving && (
