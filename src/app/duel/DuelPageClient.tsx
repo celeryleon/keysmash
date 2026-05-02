@@ -1,28 +1,112 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ALL_PASSAGES } from "@/lib/passages";
 import { pickRandomDuelIndex } from "@/lib/duel";
 import TypingArea from "@/components/TypingArea";
 import { createClient } from "@/lib/supabase/client";
+import {
+  readPendingDuel,
+  clearPendingDuel,
+  writePendingDuel,
+  type PendingDuel,
+} from "@/lib/duel-handoff";
 
-type Phase = "typing" | "waiting" | "complete";
+type Phase = "typing" | "auth-gate" | "creating" | "waiting" | "complete";
 
 interface DuelPageClientProps {
   excludedIndex: number;
+  isSignedIn: boolean;
 }
 
-export default function DuelPageClient({ excludedIndex }: DuelPageClientProps) {
-  const [passageIndex] = useState(() => pickRandomDuelIndex(excludedIndex));
+export default function DuelPageClient({
+  excludedIndex,
+  isSignedIn,
+}: DuelPageClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isResume = searchParams.get("resume") === "1";
+
+  // Lazily seed: if we're resuming a pending duel, reuse its passage_index
+  // verbatim so the WPM the user typed matches the row we create. Otherwise
+  // pick a fresh random one.
+  const [passageIndex] = useState(() => {
+    if (typeof window === "undefined") return pickRandomDuelIndex(excludedIndex);
+    const pending = readPendingDuel();
+    if (pending) return pending.passage_index;
+    return pickRandomDuelIndex(excludedIndex);
+  });
   const passage = ALL_PASSAGES[passageIndex];
 
   const [phase, setPhase] = useState<Phase>("typing");
   const [myWpm, setMyWpm] = useState<number | null>(null);
-  const [theirWpm, setTheirWpm] = useState<number | null>(null);
   const [duelId, setDuelId] = useState<string | null>(null);
+  const [theirWpm, setTheirWpm] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  const createDuel = useCallback(
+    async (payload: PendingDuel) => {
+      setPhase("creating");
+      setMyWpm(payload.wpm);
+
+      const res = await fetch("/api/duels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          passage_index: payload.passage_index,
+          wpm: payload.wpm,
+          time_elapsed: payload.time_elapsed,
+        }),
+      });
+
+      if (!res.ok) {
+        // 401 here means session was lost between gate and resume. Re-stash
+        // and bounce back through /auth so the user can recover.
+        if (res.status === 401) {
+          writePendingDuel(payload);
+          router.push("/auth?next=/duel?resume=1");
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "Failed to create duel");
+        setPhase("auth-gate");
+        return;
+      }
+
+      const data = await res.json();
+      clearPendingDuel();
+      setDuelId(data.id);
+      setPhase("waiting");
+    },
+    [router]
+  );
+
+  // On resume from /auth, drain the stash and POST automatically. We use a
+  // ref to ensure this only fires once even if the effect re-runs.
+  const drainedRef = useRef(false);
+  useEffect(() => {
+    if (drainedRef.current) return;
+    if (!isResume) return;
+    const pending = readPendingDuel();
+    if (!pending) {
+      // Nothing to resume — strip the param and let the user start fresh.
+      router.replace("/duel");
+      return;
+    }
+    drainedRef.current = true;
+
+    if (!isSignedIn) {
+      // Session didn't survive the round-trip — keep the stash, send back to /auth.
+      router.push("/auth?next=/duel?resume=1");
+      return;
+    }
+
+    void createDuel(pending);
+  }, [isResume, isSignedIn, createDuel, router]);
+
+  // Realtime subscription for the opponent's score, exactly as before.
   useEffect(() => {
     if (!duelId || phase !== "waiting") return;
 
@@ -53,26 +137,35 @@ export default function DuelPageClient({ excludedIndex }: DuelPageClientProps) {
 
   const handleComplete = useCallback(
     async (wpm: number, _accuracy: number, timeElapsed: number) => {
-      setMyWpm(wpm);
-      setCreating(true);
+      const payload: PendingDuel = {
+        passage_index: passageIndex,
+        wpm,
+        time_elapsed: timeElapsed,
+      };
 
-      const res = await fetch("/api/duels", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          passage_index: passageIndex,
-          wpm,
-          time_elapsed: timeElapsed,
-        }),
-      });
+      if (!isSignedIn) {
+        // Post-investment gate: stash and show "sign in to send" (PRD §3.2).
+        writePendingDuel(payload);
+        setMyWpm(wpm);
+        setPhase("auth-gate");
+        return;
+      }
 
-      const data = await res.json();
-      setDuelId(data.id);
-      setCreating(false);
-      setPhase("waiting");
+      await createDuel(payload);
     },
-    [passageIndex]
+    [passageIndex, isSignedIn, createDuel]
   );
+
+  const goToAuth = () => {
+    router.push("/auth?next=/duel?resume=1");
+  };
+
+  const cancelGate = () => {
+    clearPendingDuel();
+    setMyWpm(null);
+    setError(null);
+    setPhase("typing");
+  };
 
   const duelUrl =
     typeof window !== "undefined" && duelId
@@ -113,12 +206,61 @@ export default function DuelPageClient({ excludedIndex }: DuelPageClientProps) {
           passage={passage.content}
           onComplete={handleComplete}
         />
+      </div>
+    );
+  }
 
-        {creating && (
-          <p className="text-center text-sm text-[var(--muted)]">
-            creating duel...
+  if (phase === "auth-gate") {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full px-6 py-12 gap-8">
+        <div className="text-center space-y-2">
+          <p className="text-xs text-[var(--muted)] uppercase tracking-widest">
+            nice run
           </p>
+          <div className="text-7xl font-black tabular-nums text-[var(--accent)]">
+            {myWpm}
+          </div>
+          <p className="text-sm text-[var(--muted)]">
+            wpm · sign in to send the challenge
+          </p>
+        </div>
+
+        <div className="w-full space-y-3">
+          <button
+            onClick={goToAuth}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:bg-[var(--accent-dark)] transition-colors"
+          >
+            sign in to send
+          </button>
+          <button
+            onClick={cancelGate}
+            className="w-full text-center text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+          >
+            cancel and start over
+          </button>
+        </div>
+
+        {error && (
+          <p className="text-center text-[var(--error)] text-sm">{error}</p>
         )}
+
+        <div className="bg-[var(--surface)] rounded-2xl p-4 border border-[var(--border)] w-full space-y-1">
+          <p className="text-xs text-[var(--muted)] uppercase tracking-widest">
+            the passage
+          </p>
+          <p className="font-semibold text-sm">{passage.title}</p>
+          {passage.author && (
+            <p className="text-xs text-[var(--muted)]">{passage.author}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "creating") {
+    return (
+      <div className="flex-1 flex items-center justify-center px-6">
+        <p className="text-sm text-[var(--muted)]">creating duel...</p>
       </div>
     );
   }
@@ -226,3 +368,4 @@ export default function DuelPageClient({ excludedIndex }: DuelPageClientProps) {
     </div>
   );
 }
+
