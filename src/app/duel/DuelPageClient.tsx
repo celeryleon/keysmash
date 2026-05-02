@@ -103,7 +103,11 @@ export default function DuelPageClient({
       return;
     }
 
-    void createDuel(pending);
+    // Defer the createDuel call (which sets state) out of the effect's sync
+    // path so React doesn't see a setState inside the effect body.
+    queueMicrotask(() => {
+      void createDuel(pending);
+    });
   }, [isResume, isSignedIn, createDuel, router]);
 
   // Realtime subscription for the opponent's score, exactly as before.
