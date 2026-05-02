@@ -89,6 +89,9 @@ export type Database = {
           challengee_wpm: number | null;
           created_at: string;
           expires_at: string;
+          challenger_user_id: string | null;
+          intended_opponent_user_id: string | null;
+          challengee_user_id: string | null;
         };
         Insert: {
           id?: string;
@@ -97,6 +100,9 @@ export type Database = {
           challengee_wpm?: number | null;
           created_at?: string;
           expires_at?: string;
+          challenger_user_id?: string | null;
+          intended_opponent_user_id?: string | null;
+          challengee_user_id?: string | null;
         };
         Update: {
           id?: string;
@@ -105,24 +111,58 @@ export type Database = {
           challengee_wpm?: number | null;
           created_at?: string;
           expires_at?: string;
+          challenger_user_id?: string | null;
+          intended_opponent_user_id?: string | null;
+          challengee_user_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "duels_challenger_user_id_fkey";
+            columns: ["challenger_user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "duels_intended_opponent_user_id_fkey";
+            columns: ["intended_opponent_user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "duels_challengee_user_id_fkey";
+            columns: ["challengee_user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       profiles: {
         Row: {
           id: string;
           username: string | null;
           created_at: string;
+          current_streak: number;
+          longest_streak: number;
+          last_attempt_date: string | null;
         };
         Insert: {
           id: string;
           username?: string | null;
           created_at?: string;
+          current_streak?: number;
+          longest_streak?: number;
+          last_attempt_date?: string | null;
         };
         Update: {
           id?: string;
           username?: string | null;
           created_at?: string;
+          current_streak?: number;
+          longest_streak?: number;
+          last_attempt_date?: string | null;
         };
         Relationships: [
           {
