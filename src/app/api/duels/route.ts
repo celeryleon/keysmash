@@ -5,6 +5,15 @@ import { validateScore } from "@/lib/score-validation";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
+
+  // Auth gate: anonymous users get a 401 with reason="auth_required" so the
+  // client can stash the score in sessionStorage and route through /auth.
+  // PRD §3.2: post-investment auth gate, score never enters the DB anonymously.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "auth_required" }, { status: 401 });
+  }
+
   const body = await request.json();
   const { passage_index, wpm, time_elapsed } = body;
 
@@ -27,7 +36,11 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase
     .from("duels")
-    .insert({ passage_index, challenger_wpm: wpm })
+    .insert({
+      passage_index,
+      challenger_wpm: wpm,
+      challenger_user_id: user.id,
+    })
     .select("id")
     .single();
 
