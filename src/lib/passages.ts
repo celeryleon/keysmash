@@ -381,11 +381,15 @@ export const ALL_PASSAGES: PassageEntry[] = [
   ...PHILOSOPHY,
 ];
 
-export function pickPassageForDate(date: string): PassageEntry {
+export function pickPassageIndexForDate(date: string): number {
   const seed = date
     .replace(/-/g, "")
     .split("")
     .reduce((acc, c) => acc + c.charCodeAt(0), 0);
   // Offset ensures good distribution across the passage list from launch date
-  return ALL_PASSAGES[(seed + 7) % ALL_PASSAGES.length];
+  return (seed + 7) % ALL_PASSAGES.length;
+}
+
+export function pickPassageForDate(date: string): PassageEntry {
+  return ALL_PASSAGES[pickPassageIndexForDate(date)];
 }

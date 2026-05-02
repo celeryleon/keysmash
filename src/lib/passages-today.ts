@@ -1,10 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database, Passage } from "@/lib/supabase/types";
 import { pickPassageForDate } from "@/lib/passages";
-
-function getTodayDate() {
-  return new Date().toISOString().split("T")[0];
-}
+import { getTodayDate } from "@/lib/date";
 
 export async function getTodayPassages(): Promise<Passage[]> {
   const supabase = createClient<Database>(
