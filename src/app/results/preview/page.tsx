@@ -56,7 +56,7 @@ function PreviewContent() {
         >
           sign in to save →
         </Link>
-        <Link href="/" className="text-[var(--muted)] hover:text-[var(--foreground)] self-center">
+        <Link href="/" className="inline-flex items-center tap-target text-[var(--muted)] hover:text-[var(--foreground)] self-center">
           ← back home
         </Link>
       </div>

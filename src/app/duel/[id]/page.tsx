@@ -131,7 +131,7 @@ export default async function DuelPage({ params }: Props) {
 
         <Link
           href="/duel"
-          className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+          className="inline-flex items-center tap-target text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
         >
           start your own duel →
         </Link>
@@ -209,7 +209,7 @@ export default async function DuelPage({ params }: Props) {
         ) : (
           <Link
             href="/duel"
-            className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            className="inline-flex items-center tap-target text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
           >
             start a new duel →
           </Link>

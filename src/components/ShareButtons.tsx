@@ -69,7 +69,7 @@ export default function ShareButtons({ wpm, accuracy, timeElapsed, passageTitle,
       <button
         onClick={handleInstagram}
         disabled={instaState === "loading"}
-        className="flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--border-2)] text-sm text-[var(--foreground)] transition-colors disabled:opacity-50 disabled:cursor-wait"
+        className="flex items-center gap-2 tap-target px-4 py-2 rounded-full border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--border-2)] text-sm text-[var(--foreground)] transition-colors disabled:opacity-50 disabled:cursor-wait"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
@@ -83,7 +83,7 @@ export default function ShareButtons({ wpm, accuracy, timeElapsed, passageTitle,
 
       <button
         onClick={handleSMS}
-        className="flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--border-2)] text-sm text-[var(--foreground)] transition-colors"
+        className="flex items-center gap-2 tap-target px-4 py-2 rounded-full border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--border-2)] text-sm text-[var(--foreground)] transition-colors"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>

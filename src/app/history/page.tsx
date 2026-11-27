@@ -62,7 +62,7 @@ export default async function HistoryPage({ searchParams }: Props) {
             key={t.id}
             href={t.href}
             aria-current={t.id === tab ? "page" : undefined}
-            className={`-mb-px pb-3 text-sm border-b-2 ${
+            className={`-mb-px inline-flex items-end tap-target pb-3 text-sm border-b-2 ${
               t.id === tab
                 ? "border-[var(--accent)] text-[var(--foreground)] font-semibold"
                 : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
@@ -296,7 +296,7 @@ async function DuelsTab({ userId }: { userId: string }) {
               </div>
               <Link
                 href={`/duel/${duel.id}`}
-                className="shrink-0 px-4 py-1.5 bg-[var(--accent)] text-white text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)]"
+                className="shrink-0 inline-flex items-center justify-center tap-target px-4 py-1.5 bg-[var(--accent)] text-white text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)]"
               >
                 accept
               </Link>
@@ -328,7 +328,7 @@ async function DuelsTab({ userId }: { userId: string }) {
               </p>
               <Link
                 href={`/duel?rematch=${group.opponentId}`}
-                className="shrink-0 px-4 py-1.5 border border-[var(--border-2)] text-xs font-semibold rounded-full hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                className="shrink-0 inline-flex items-center justify-center tap-target px-4 py-1.5 border border-[var(--border-2)] text-xs font-semibold rounded-full hover:border-[var(--accent)] hover:text-[var(--accent)]"
               >
                 rematch
               </Link>
