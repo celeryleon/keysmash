@@ -33,6 +33,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Minimum 44px tap target on touch devices (PRD §6). Pointer-only, so the
+   desktop layout is unchanged. Pair with inline-flex so it applies to links. */
+@utility tap-target {
+  @media (pointer: coarse) {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
 /* Typing area cursor blink */
 @keyframes blink {
   0%, 100% { opacity: 1; }

@@ -60,14 +60,14 @@ export default function PassageCard({ passage, attempt }: PassageCardProps) {
         {completed ? (
           <Link
             href={`/results/${attempt.id}`}
-            className="shrink-0 text-xs text-[var(--accent)] hover:underline underline-offset-2"
+            className="shrink-0 inline-flex items-center tap-target text-xs text-[var(--accent)] hover:underline underline-offset-2"
           >
             view results →
           </Link>
         ) : (
           <Link
             href={`/type/${passage.id}`}
-            className="shrink-0 px-4 py-1.5 bg-[var(--accent)] text-white text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)]"
+            className="shrink-0 inline-flex items-center justify-center tap-target px-4 py-1.5 bg-[var(--accent)] text-white text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)]"
           >
             smash!
           </Link>

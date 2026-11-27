@@ -22,6 +22,7 @@ export default function TypingArea({ passage, onComplete }: TypingAreaProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeWordRef = useRef<HTMLSpanElement>(null);
+  const passageRef = useRef<HTMLDivElement>(null);
 
   const expected = words[wordIndex] ?? "";
   // Input is wrong when it doesn't match the prefix of the expected word
@@ -51,9 +52,18 @@ export default function TypingArea({ passage, onComplete }: TypingAreaProps) {
     };
   }, [started, completed, startTime, charsCompleted]);
 
-  // Scroll active word into view
+  // Keep the active word visible by scrolling only the passage box, with one
+  // line of context above it. scrollIntoView would also scroll the page,
+  // which on mobile can push the input under the on-screen keyboard (PRD §6).
   useEffect(() => {
-    activeWordRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    const box = passageRef.current;
+    const word = activeWordRef.current;
+    if (!box || !word) return;
+    const lineHeight = parseFloat(getComputedStyle(box).lineHeight) || 0;
+    box.scrollTo({
+      top: Math.max(0, word.offsetTop - lineHeight),
+      behavior: "smooth",
+    });
   }, [wordIndex]);
 
   function finish(_finalInput: string) {
@@ -122,7 +132,7 @@ export default function TypingArea({ passage, onComplete }: TypingAreaProps) {
   return (
     <div className="space-y-6">
       {/* Stats bar */}
-      <div className="flex items-center gap-6 text-sm font-mono">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm font-mono">
         <div className="flex items-center gap-2">
           <span className="text-[var(--muted)]">wpm</span>
           <span className="text-[var(--accent)] font-bold text-lg tabular-nums w-12">
@@ -151,8 +161,13 @@ export default function TypingArea({ passage, onComplete }: TypingAreaProps) {
         />
       </div>
 
-      {/* Passage display */}
-      <div className="font-mono text-xl leading-relaxed tracking-wide max-h-48 overflow-hidden select-none">
+      {/* Passage display. Tapping it refocuses the input, which reopens the
+          on-screen keyboard if the user dismissed it. */}
+      <div
+        ref={passageRef}
+        onClick={() => inputRef.current?.focus()}
+        className="relative font-mono text-xl leading-relaxed tracking-wide max-h-48 overflow-hidden select-none"
+      >
         {words.map((word, wi) => {
           const isCompleted = wi < wordIndex;
           const isCurrent = wi === wordIndex;

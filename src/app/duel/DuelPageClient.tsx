@@ -211,7 +211,7 @@ export default function DuelPageClient({
 
   if (phase === "typing") {
     return (
-      <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-6 py-12 gap-10">
+      <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-6 py-6 gap-6 sm:py-12 sm:gap-10">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[var(--accent)] text-xs font-mono">⚔</span>
@@ -265,7 +265,7 @@ export default function DuelPageClient({
           </button>
           <button
             onClick={cancelGate}
-            className="w-full text-center text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            className="w-full tap-target text-center text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
           >
             cancel and start over
           </button>
@@ -406,7 +406,7 @@ export default function DuelPageClient({
         )}
         <a
           href="/duel"
-          className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+          className="inline-flex items-center tap-target text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
         >
           challenge someone else →
         </a>

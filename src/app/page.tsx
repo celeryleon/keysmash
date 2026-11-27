@@ -81,7 +81,7 @@ export default async function HomePage() {
             </div>
             <a
               href="/duel"
-              className="shrink-0 px-4 py-1.5 bg-[var(--accent)] text-white text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)] transition-colors"
+              className="shrink-0 inline-flex items-center justify-center tap-target px-4 py-1.5 bg-[var(--accent)] text-white text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)] transition-colors"
             >
               duel!
             </a>

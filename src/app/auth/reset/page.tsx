@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
               required
               minLength={6}
               autoComplete="new-password"
-              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm outline-none focus:border-[var(--accent)] placeholder-[var(--muted)]"
+              className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-4 py-3 text-base sm:text-sm outline-none focus:border-[var(--accent)] placeholder-[var(--muted)]"
               placeholder="••••••••"
             />
           </div>

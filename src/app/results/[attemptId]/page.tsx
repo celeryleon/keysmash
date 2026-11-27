@@ -100,10 +100,10 @@ export default async function ResultsPage({ params }: Props) {
 
       {/* Navigation */}
       <div className="flex justify-center gap-4 text-sm">
-        <Link href="/" className="text-[var(--muted)] hover:text-[var(--foreground)]">
+        <Link href="/" className="inline-flex items-center tap-target text-[var(--muted)] hover:text-[var(--foreground)]">
           ← today's passages
         </Link>
-        <Link href="/history" className="text-[var(--muted)] hover:text-[var(--foreground)]">
+        <Link href="/history" className="inline-flex items-center tap-target text-[var(--muted)] hover:text-[var(--foreground)]">
           history →
         </Link>
       </div>
