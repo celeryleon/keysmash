@@ -46,7 +46,7 @@ export default function DuelChallengeClient({
   );
 
   return (
-    <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-6 py-12 gap-10">
+    <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-6 py-6 gap-6 sm:py-12 sm:gap-10">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <span className="text-[var(--accent)] text-xs font-mono">⚔</span>
