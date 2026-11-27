@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ALL_PASSAGES } from "@/lib/passages";
 import { pickRandomDuelIndex } from "@/lib/duel";
 import TypingArea from "@/components/TypingArea";
@@ -394,12 +395,22 @@ export default function DuelPageClient({
         )}
       </div>
 
-      <a
-        href="/duel"
-        className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-      >
-        challenge someone else →
-      </a>
+      <div className="flex flex-col items-center gap-3">
+        {duelId && (
+          <Link
+            href={`/duel/${duelId}`}
+            className="px-5 py-2.5 rounded-full border border-[var(--border-2)] text-sm font-semibold hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+          >
+            share the result
+          </Link>
+        )}
+        <a
+          href="/duel"
+          className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+        >
+          challenge someone else →
+        </a>
+      </div>
     </div>
   );
 }
