@@ -12,6 +12,8 @@ export interface PendingDuel {
   passage_index: number;
   wpm: number;
   time_elapsed: number;
+  // Set only for a rematch addressed to a known opponent (PRD §3.2).
+  intended_opponent_user_id?: string;
 }
 
 export interface PendingClaim {
@@ -33,7 +35,9 @@ function isPendingDuel(value: unknown): value is PendingDuel {
   return (
     typeof v.passage_index === "number" &&
     typeof v.wpm === "number" &&
-    typeof v.time_elapsed === "number"
+    typeof v.time_elapsed === "number" &&
+    (v.intended_opponent_user_id === undefined ||
+      typeof v.intended_opponent_user_id === "string")
   );
 }
 

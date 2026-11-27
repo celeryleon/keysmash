@@ -15,14 +15,23 @@ import {
 
 type Phase = "typing" | "auth-gate" | "creating" | "waiting" | "complete";
 
+export interface RematchOpponent {
+  id: string;
+  username: string | null;
+}
+
 interface DuelPageClientProps {
   excludedIndex: number;
   isSignedIn: boolean;
+  // Set when this duel is a rematch addressed to a known opponent, already
+  // validated server-side (PRD §3.2).
+  rematchOpponent?: RematchOpponent | null;
 }
 
 export default function DuelPageClient({
   excludedIndex,
   isSignedIn,
+  rematchOpponent = null,
 }: DuelPageClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,6 +47,11 @@ export default function DuelPageClient({
     return pickRandomDuelIndex(excludedIndex);
   });
   const passage = ALL_PASSAGES[passageIndex];
+  const opponentLabel = rematchOpponent
+    ? rematchOpponent.username
+      ? `@${rematchOpponent.username}`
+      : "your opponent"
+    : null;
 
   const [phase, setPhase] = useState<Phase>("typing");
   const [myWpm, setMyWpm] = useState<number | null>(null);
@@ -58,6 +72,7 @@ export default function DuelPageClient({
           passage_index: payload.passage_index,
           wpm: payload.wpm,
           time_elapsed: payload.time_elapsed,
+          intended_opponent_user_id: payload.intended_opponent_user_id,
         }),
       });
 
@@ -145,6 +160,9 @@ export default function DuelPageClient({
         passage_index: passageIndex,
         wpm,
         time_elapsed: timeElapsed,
+        ...(rematchOpponent
+          ? { intended_opponent_user_id: rematchOpponent.id }
+          : {}),
       };
 
       if (!isSignedIn) {
@@ -157,7 +175,7 @@ export default function DuelPageClient({
 
       await createDuel(payload);
     },
-    [passageIndex, isSignedIn, createDuel]
+    [passageIndex, isSignedIn, createDuel, rematchOpponent]
   );
 
   const goToAuth = () => {
@@ -189,7 +207,7 @@ export default function DuelPageClient({
           <div className="flex items-center gap-2">
             <span className="text-[var(--accent)] text-xs font-mono">⚔</span>
             <span className="text-xs text-[var(--muted)] uppercase tracking-widest">
-              duel mode
+              {opponentLabel ? `rematch vs ${opponentLabel}` : "duel mode"}
             </span>
           </div>
           <h1 className="text-2xl font-bold">
@@ -274,14 +292,19 @@ export default function DuelPageClient({
       <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full px-6 py-12 gap-8">
         <div className="text-center space-y-2">
           <p className="text-xs text-[var(--muted)] uppercase tracking-widest">
-            duel created
+            {opponentLabel ? "rematch sent" : "duel created"}
           </p>
           <div className="text-7xl font-black tabular-nums text-[var(--accent)]">
             {myWpm}
           </div>
           <p className="text-sm text-[var(--muted)]">
-            wpm · waiting for your opponent
+            wpm · waiting for {opponentLabel ?? "your opponent"}
           </p>
+          {opponentLabel && (
+            <p className="text-xs text-[var(--muted)]">
+              it will show up in their history, or send them the link
+            </p>
+          )}
         </div>
 
         <div className="w-full space-y-3">

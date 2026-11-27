@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { ALL_PASSAGES } from "@/lib/passages";
 import { validateScore } from "@/lib/score-validation";
+import { canRematch } from "@/lib/duel-rematch";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -34,12 +35,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: validation.reason }, { status: 400 });
   }
 
+  // Rematch (PRD §3.2): only addressable to a user the challenger has already
+  // completed a duel with, so the field can't be used to target strangers.
+  const intendedOpponentId = body.intended_opponent_user_id ?? null;
+  if (intendedOpponentId !== null) {
+    if (!(await canRematch(supabase, user.id, intendedOpponentId))) {
+      return NextResponse.json(
+        { error: "Invalid rematch opponent" },
+        { status: 400 }
+      );
+    }
+  }
+
   const { data, error } = await supabase
     .from("duels")
     .insert({
       passage_index,
       challenger_wpm: wpm,
       challenger_user_id: user.id,
+      intended_opponent_user_id: intendedOpponentId,
     })
     .select("id")
     .single();
