@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./supabase/types";
-import { canRematch, isUuid } from "./duel-rematch";
+import {
+  canRematch,
+  isUuid,
+  resolveExpiredDuelRematch,
+} from "./duel-rematch";
 
 const ME = "11111111-1111-4111-8111-111111111111";
 const ALEX = "22222222-2222-4222-8222-222222222222";
@@ -77,5 +81,78 @@ describe("canRematch", () => {
   it("is false when the lookup errors", async () => {
     const { client } = fakeClient(null, { message: "boom" });
     expect(await canRematch(client, ME, ALEX)).toBe(false);
+  });
+});
+
+describe("resolveExpiredDuelRematch", () => {
+  const DUEL = "33333333-3333-4333-8333-333333333333";
+  const NOW = new Date("2026-06-01T00:00:00Z");
+  const expired = {
+    challenger_user_id: ALEX,
+    challengee_wpm: null,
+    expires_at: "2026-05-08T12:00:00+00:00",
+  };
+
+  function duelClient(row: typeof expired | Record<string, unknown> | null) {
+    const builder = {
+      select: () => builder,
+      eq: () => builder,
+      maybeSingle: () => Promise.resolve({ data: row, error: null }),
+    };
+    return { from: () => builder } as unknown as SupabaseClient<Database>;
+  }
+
+  it("returns the challenger for an expired pending duel", async () => {
+    expect(
+      await resolveExpiredDuelRematch(duelClient(expired), ME, DUEL, NOW)
+    ).toBe(ALEX);
+  });
+
+  it("works for an anonymous viewer", async () => {
+    expect(
+      await resolveExpiredDuelRematch(duelClient(expired), null, DUEL, NOW)
+    ).toBe(ALEX);
+  });
+
+  it("rejects a malformed duel id without querying", async () => {
+    expect(
+      await resolveExpiredDuelRematch(throwingClient, ME, "nope", NOW)
+    ).toBeNull();
+    expect(
+      await resolveExpiredDuelRematch(throwingClient, ME, undefined, NOW)
+    ).toBeNull();
+  });
+
+  it("returns null when the duel does not exist", async () => {
+    expect(
+      await resolveExpiredDuelRematch(duelClient(null), ME, DUEL, NOW)
+    ).toBeNull();
+  });
+
+  it("returns null for a duel that has not expired", async () => {
+    const live = { ...expired, expires_at: "2026-06-02T00:00:00+00:00" };
+    expect(
+      await resolveExpiredDuelRematch(duelClient(live), ME, DUEL, NOW)
+    ).toBeNull();
+  });
+
+  it("returns null for a completed duel", async () => {
+    const done = { ...expired, challengee_wpm: 70 };
+    expect(
+      await resolveExpiredDuelRematch(duelClient(done), ME, DUEL, NOW)
+    ).toBeNull();
+  });
+
+  it("returns null when the challenger is unknown", async () => {
+    const anon = { ...expired, challenger_user_id: null };
+    expect(
+      await resolveExpiredDuelRematch(duelClient(anon), ME, DUEL, NOW)
+    ).toBeNull();
+  });
+
+  it("returns null when the viewer is the challenger", async () => {
+    expect(
+      await resolveExpiredDuelRematch(duelClient(expired), ALEX, DUEL, NOW)
+    ).toBeNull();
   });
 });
