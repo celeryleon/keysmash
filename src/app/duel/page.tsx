@@ -1,7 +1,7 @@
 import { getTodayDate } from "@/lib/date";
 import { pickPassageIndexForDate } from "@/lib/passages";
 import { createClient } from "@/lib/supabase/server";
-import { canRematch } from "@/lib/duel-rematch";
+import { canRematch, resolveExpiredDuelRematch } from "@/lib/duel-rematch";
 import DuelPageClient, { type RematchOpponent } from "./DuelPageClient";
 
 // `getTodayDate()` reads the wall clock — must render per-request, not at
@@ -23,17 +23,36 @@ export default async function DuelPage({ searchParams }: Props) {
   // `?rematch=<userId>` comes from the /history Duels tab (PRD §3.6). It is
   // honored only for a signed-in user who has already completed a duel with
   // that opponent; anything else falls back to a normal open duel.
-  const rematchId = (await searchParams).rematch;
-  let rematchOpponent: RematchOpponent | null = null;
+  //
+  // `?rematchOf=<duelId>` comes from an expired duel's page (PRD §3.2) and
+  // addresses the new duel to that duel's challenger. It also works for an
+  // anonymous viewer, who signs in at the usual post-typing gate; the POST
+  // re-checks eligibility either way.
+  const { rematch: rematchId, rematchOf } = await searchParams;
+  let opponentId: string | null = null;
+  let rematchOfDuelId: string | undefined;
   if (user && (await canRematch(supabase, user.id, rematchId))) {
+    opponentId = rematchId as string;
+  } else {
+    opponentId = await resolveExpiredDuelRematch(
+      supabase,
+      user?.id ?? null,
+      rematchOf
+    );
+    if (opponentId) rematchOfDuelId = rematchOf as string;
+  }
+
+  let rematchOpponent: RematchOpponent | null = null;
+  if (opponentId) {
     const { data: opponent } = await supabase
       .from("profiles")
       .select("id, username")
-      .eq("id", rematchId as string)
+      .eq("id", opponentId)
       .maybeSingle();
     rematchOpponent = {
-      id: rematchId as string,
+      id: opponentId,
       username: opponent?.username ?? null,
+      rematchOfDuelId,
     };
   }
 

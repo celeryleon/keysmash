@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { ALL_PASSAGES } from "@/lib/passages";
 import { validateScore } from "@/lib/score-validation";
-import { canRematch } from "@/lib/duel-rematch";
+import { canRematch, resolveExpiredDuelRematch } from "@/lib/duel-rematch";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -36,10 +36,18 @@ export async function POST(request: NextRequest) {
   }
 
   // Rematch (PRD §3.2): only addressable to a user the challenger has already
-  // completed a duel with, so the field can't be used to target strangers.
+  // completed a duel with, or to the challenger of an expired duel named by
+  // `rematch_of_duel_id`, so the field can't be used to target strangers.
   const intendedOpponentId = body.intended_opponent_user_id ?? null;
   if (intendedOpponentId !== null) {
-    if (!(await canRematch(supabase, user.id, intendedOpponentId))) {
+    const eligible =
+      (await canRematch(supabase, user.id, intendedOpponentId)) ||
+      (await resolveExpiredDuelRematch(
+        supabase,
+        user.id,
+        body.rematch_of_duel_id
+      )) === intendedOpponentId;
+    if (!eligible) {
       return NextResponse.json(
         { error: "Invalid rematch opponent" },
         { status: 400 }

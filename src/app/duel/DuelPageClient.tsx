@@ -18,6 +18,8 @@ type Phase = "typing" | "auth-gate" | "creating" | "waiting" | "complete";
 export interface RematchOpponent {
   id: string;
   username: string | null;
+  // The expired duel this rematch answers, when started from its page.
+  rematchOfDuelId?: string;
 }
 
 interface DuelPageClientProps {
@@ -73,6 +75,7 @@ export default function DuelPageClient({
           wpm: payload.wpm,
           time_elapsed: payload.time_elapsed,
           intended_opponent_user_id: payload.intended_opponent_user_id,
+          rematch_of_duel_id: payload.rematch_of_duel_id,
         }),
       });
 
@@ -161,7 +164,12 @@ export default function DuelPageClient({
         wpm,
         time_elapsed: timeElapsed,
         ...(rematchOpponent
-          ? { intended_opponent_user_id: rematchOpponent.id }
+          ? {
+              intended_opponent_user_id: rematchOpponent.id,
+              ...(rematchOpponent.rematchOfDuelId
+                ? { rematch_of_duel_id: rematchOpponent.rematchOfDuelId }
+                : {}),
+            }
           : {}),
       };
 

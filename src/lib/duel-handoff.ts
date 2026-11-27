@@ -14,6 +14,9 @@ export interface PendingDuel {
   time_elapsed: number;
   // Set only for a rematch addressed to a known opponent (PRD §3.2).
   intended_opponent_user_id?: string;
+  // Set when the rematch was started from an expired duel's page; the server
+  // uses it to check the opponent is that duel's challenger.
+  rematch_of_duel_id?: string;
 }
 
 export interface PendingClaim {
@@ -37,7 +40,9 @@ function isPendingDuel(value: unknown): value is PendingDuel {
     typeof v.wpm === "number" &&
     typeof v.time_elapsed === "number" &&
     (v.intended_opponent_user_id === undefined ||
-      typeof v.intended_opponent_user_id === "string")
+      typeof v.intended_opponent_user_id === "string") &&
+    (v.rematch_of_duel_id === undefined ||
+      typeof v.rematch_of_duel_id === "string")
   );
 }
 
