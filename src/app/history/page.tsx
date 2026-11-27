@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ALL_PASSAGES } from "@/lib/passages";
 import { groupDuelsByOpponent } from "@/lib/duel-history";
+import { isDuelExpired } from "@/lib/duel-expiry";
 
 type Tab = "daily" | "duels";
 
@@ -227,7 +228,10 @@ async function DuelsTab({ userId }: { userId: string }) {
     .is("challengee_wpm", null)
     .order("created_at", { ascending: false });
   const incoming = (incomingRows ?? []).filter(
-    (d) => d.challenger_user_id != null && d.challenger_user_id !== userId
+    (d) =>
+      d.challenger_user_id != null &&
+      d.challenger_user_id !== userId &&
+      !isDuelExpired(d)
   );
 
   const usernames = new Map<string, string | null>();

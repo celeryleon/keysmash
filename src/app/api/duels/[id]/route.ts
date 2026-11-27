@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { ALL_PASSAGES } from "@/lib/passages";
 import { validateScore } from "@/lib/score-validation";
+import { isDuelExpired } from "@/lib/duel-expiry";
 
 export async function GET(
   _: NextRequest,
@@ -43,7 +44,7 @@ export async function PATCH(
   // Look up the duel's passage to validate the score against actual content length.
   const { data: duel, error: duelError } = await supabase
     .from("duels")
-    .select("passage_index, challengee_wpm, challenger_user_id")
+    .select("passage_index, challengee_wpm, challenger_user_id, expires_at")
     .eq("id", id)
     .single();
 
@@ -53,6 +54,11 @@ export async function PATCH(
 
   if (duel.challengee_wpm != null) {
     return NextResponse.json({ error: "Duel already complete" }, { status: 409 });
+  }
+
+  // Soft-expire (PRD §3.2): an expired pending duel can no longer be played.
+  if (isDuelExpired(duel)) {
+    return NextResponse.json({ error: "Duel expired" }, { status: 410 });
   }
 
   // A signed-in user typing their own challenge link would erroneously become
