@@ -218,19 +218,38 @@ async function DuelsTab({ userId }: { userId: string }) {
 
   const groups = groupDuelsByOpponent(duels ?? [], userId);
 
+  // Incoming rematches: pull-based, so this list is the only place the
+  // intended opponent finds out about them (PRD §4.2).
+  const { data: incomingRows } = await supabase
+    .from("duels")
+    .select("*")
+    .eq("intended_opponent_user_id", userId)
+    .is("challengee_wpm", null)
+    .order("created_at", { ascending: false });
+  const incoming = (incomingRows ?? []).filter(
+    (d) => d.challenger_user_id != null && d.challenger_user_id !== userId
+  );
+
   const usernames = new Map<string, string | null>();
-  if (groups.length > 0) {
+  const profileIds = [
+    ...new Set([
+      ...groups.map((g) => g.opponentId),
+      ...incoming.map((d) => d.challenger_user_id as string),
+    ]),
+  ];
+  if (profileIds.length > 0) {
     const { data: opponents } = await supabase
       .from("profiles")
       .select("id, username")
-      .in(
-        "id",
-        groups.map((g) => g.opponentId)
-      );
+      .in("id", profileIds);
     for (const o of opponents ?? []) usernames.set(o.id, o.username);
   }
+  const displayName = (id: string) => {
+    const username = usernames.get(id);
+    return username ? `@${username}` : "unknown player";
+  };
 
-  if (groups.length === 0) {
+  if (groups.length === 0 && incoming.length === 0) {
     return (
       <div className="text-center py-16 space-y-3">
         <p className="text-[var(--muted)]">no duels yet</p>
@@ -249,17 +268,48 @@ async function DuelsTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-6">
-      {groups.map((group) => {
-        const username = usernames.get(group.opponentId);
+      {incoming.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-xs text-[var(--muted)] uppercase tracking-widest">
+            challenges waiting on you
+          </h2>
+          {incoming.map((duel) => (
+            <div
+              key={duel.id}
+              className="flex items-center gap-4 bg-[var(--surface)] rounded-xl px-5 py-4 border border-[var(--accent)]/40"
+            >
+              <div className="flex-1 min-w-0">
+                <span className="text-xs text-[var(--muted)]">
+                  {formatDate(duel.created_at)}
+                </span>
+                <p className="text-sm font-medium truncate mt-0.5">
+                  {displayName(duel.challenger_user_id as string)} wants a
+                  rematch
+                </p>
+                <p className="text-xs text-[var(--muted)]">
+                  beat {duel.challenger_wpm} wpm
+                </p>
+              </div>
+              <Link
+                href={`/duel/${duel.id}`}
+                className="shrink-0 px-4 py-1.5 bg-[var(--accent)] text-white text-xs font-semibold rounded-full hover:bg-[var(--accent-dark)]"
+              >
+                accept
+              </Link>
+            </div>
+          ))}
+        </section>
+      )}
 
+      {groups.map((group) => {
         return (
           <section
             key={group.opponentId}
             className="bg-[var(--surface)] rounded-xl border border-[var(--border)]"
           >
-            <div className="flex items-baseline justify-between gap-4 px-5 py-4">
-              <h2 className="text-sm font-semibold truncate">
-                vs {username ? `@${username}` : "unknown player"}
+            <div className="flex items-center gap-4 px-5 py-4">
+              <h2 className="flex-1 min-w-0 text-sm font-semibold truncate">
+                vs {displayName(group.opponentId)}
               </h2>
               <p className="shrink-0 text-sm tabular-nums">
                 <span className="text-[var(--accent)] font-bold">
@@ -272,6 +322,12 @@ async function DuelsTab({ userId }: { userId: string }) {
                   </span>
                 )}
               </p>
+              <Link
+                href={`/duel?rematch=${group.opponentId}`}
+                className="shrink-0 px-4 py-1.5 border border-[var(--border-2)] text-xs font-semibold rounded-full hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              >
+                rematch
+              </Link>
             </div>
 
             <ul className="border-t border-[var(--border)] divide-y divide-[var(--border)]">
