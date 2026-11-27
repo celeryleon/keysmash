@@ -6,6 +6,8 @@ import { isDuelExpired } from "@/lib/duel-expiry";
 import Link from "next/link";
 import DuelChallengeClient from "./DuelChallengeClient";
 import ClaimChallengeeButton from "./ClaimChallengeeButton";
+import DuelShareButtons from "@/components/DuelShareButtons";
+import { summarizeDuel } from "@/lib/duel-share";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -40,6 +42,26 @@ export default async function DuelPage({ params }: Props) {
   if (duel.challengee_wpm !== null) {
     const challengerWon = duel.challenger_wpm > duel.challengee_wpm;
     const diff = Math.abs(duel.challenger_wpm - duel.challengee_wpm);
+
+    const playerIds = [duel.challenger_user_id, duel.challengee_user_id].filter(
+      (u): u is string => u != null
+    );
+    const usernames = new Map<string, string | null>();
+    if (playerIds.length > 0) {
+      const { data: players } = await supabase
+        .from("profiles")
+        .select("id, username")
+        .in("id", playerIds);
+      for (const p of players ?? []) usernames.set(p.id, p.username);
+    }
+    const nameOf = (userId: string | null) =>
+      userId ? usernames.get(userId) ?? null : null;
+    const { verdict } = summarizeDuel({
+      challengerWpm: duel.challenger_wpm,
+      challengeeWpm: duel.challengee_wpm,
+      challengerUsername: nameOf(duel.challenger_user_id),
+      challengeeUsername: nameOf(duel.challengee_user_id),
+    });
 
     return (
       <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full px-6 py-12 gap-8">
@@ -88,6 +110,17 @@ export default async function DuelPage({ params }: Props) {
           {passage.author && (
             <p className="text-xs text-[var(--muted)]">{passage.author}</p>
           )}
+        </div>
+
+        <div className="space-y-3 w-full">
+          <h2 className="text-sm font-semibold text-center text-[var(--muted)] uppercase tracking-widest">
+            share the result
+          </h2>
+          <DuelShareButtons
+            duelId={id}
+            verdict={verdict}
+            passageTitle={passage.title}
+          />
         </div>
 
         {canShowClaim && (
